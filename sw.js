@@ -1,4 +1,4 @@
-const CACHE='atashi-v4';
+const CACHE='atashi-v5';
 const ASSETS=['/atashi/','/atashi/index.html','/atashi/manifest.json','/atashi/icon.png'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));
