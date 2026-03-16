@@ -190,18 +190,25 @@ async function callAI(kw,context,userMsg){
 登録情報がある場合はそれをリスト形式で見やすく含めて。
 一人称は「あたし」。タメ口。200字以内。絵文字なし。説教くさくしない。`;
 
-  const res=await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({
-      model:'claude-haiku-4-5-20251001',max_tokens:400,
-      system:'あなたはユーザーのフランクな友達。一人称は必ず「あたし」。タメ口、絵文字なし、説教くさくない。相手を本当に大切に思ってる。「私」「俺」「僕」は絶対使わない。',
-      messages:[{role:'user',content:prompt}]
-    })
-  });
-  if(!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data=await res.json();
-  return data.content?.[0]?.text||null;
+  let resStatus='', resBody='';
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',max_tokens:400,
+        system:'あなたはユーザーのフランクな友達。一人称は必ず「あたし」。タメ口、絵文字なし、説教くさくない。相手を本当に大切に思ってる。「私」「俺」「僕」は絶対使わない。',
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    resStatus=res.status;
+    const data=await res.json();
+    resBody=JSON.stringify(data).slice(0,200);
+    if(!res.ok) throw new Error(`HTTP ${res.status}: ${JSON.stringify(data)}`);
+    return data.content?.[0]?.text||null;
+  }catch(e){
+    throw new Error(`status=${resStatus} body=${resBody} err=${e.message}`);
+  }
 }
 
 async function fireAI(matched,trigger){
@@ -214,7 +221,7 @@ async function fireAI(matched,trigger){
       reply=await callAI(matched.kw,matched.context,trigger);
       if(reply) break;
     }catch(e){
-      if(i===2) reply='ごめん、今うまく返せんかった。もう一回打ってみて';
+      if(i===2) reply='エラー: '+e.message;
       else await new Promise(r=>setTimeout(r,1000));
     }
   }
