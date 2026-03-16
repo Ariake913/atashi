@@ -142,45 +142,27 @@ const msgsEl=document.getElementById('messages');
 function renderBotMsg(text){
   const div=document.createElement('div');
   div.className='msg bot';
-
-  // 行ごとに分割してリスト判定
   const lines=text.split('\n').filter(l=>l.trim());
-  const listLines=lines.filter(l=>/[：:・\-\d]/.test(l));
-  
-  if(listLines.length>=2 && listLines.length===lines.length){
-    // 全行がリストっぽい→カード形式
-    lines.forEach(line=>{
+  lines.forEach(line=>{
+    const clean=line.replace(/^[・\-\*▸\s]+/,'').trim();
+    const isList=/[：:]/.test(clean)||/^[・\-\*▸]/.test(line.trim());
+    if(isList){
       const item=document.createElement('div');
       item.className='list-item';
-      // 「金額：内容」パターン
-      const m=line.match(/^(.+?)[：:]\s*(.+)$/);
+      const m=clean.match(/^(.+?)[：:]\s*(.+)$/);
       if(m){
         item.innerHTML=`<span class="list-bullet">▸</span><span class="list-text"><span class="list-label">${m[1].trim()}</span><span class="list-value">${m[2].trim()}</span></span>`;
       } else {
-        item.innerHTML=`<span class="list-bullet">▸</span><span class="list-text"><span class="list-value">${line.replace(/^[・\-\s]+/,'')}</span></span>`;
+        item.innerHTML=`<span class="list-bullet">▸</span><span class="list-text"><span class="list-value">${clean}</span></span>`;
       }
       div.appendChild(item);
-    });
-  } else if(lines.length>1){
-    // 混在→最初の行はイントロ、残りはリスト
-    const intro=document.createElement('div');
-    intro.className='intro';
-    intro.textContent=lines[0];
-    div.appendChild(intro);
-    lines.slice(1).forEach(line=>{
-      const item=document.createElement('div');
-      item.className='list-item';
-      const m=line.match(/^(.+?)[：:]\s*(.+)$/);
-      if(m){
-        item.innerHTML=`<span class="list-bullet">▸</span><span class="list-text"><span class="list-label">${m[1].trim()}</span><span class="list-value">${m[2].trim()}</span></span>`;
-      } else {
-        item.innerHTML=`<span class="list-bullet">▸</span><span class="list-text"><span class="list-value">${line.replace(/^[・\-\*\s]+/,'')}</span></span>`;
-      }
-      div.appendChild(item);
-    });
-  } else {
-    div.textContent=text;
-  }
+    } else {
+      const p=document.createElement('div');
+      p.className='intro';
+      p.textContent=clean;
+      div.appendChild(p);
+    }
+  });
   msgsEl.appendChild(div);
   msgsEl.scrollTop=msgsEl.scrollHeight;
   return div;
