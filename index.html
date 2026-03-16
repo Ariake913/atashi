@@ -21,13 +21,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;ba
 #settings-view{display:none;overflow-y:auto;padding:16px;gap:12px}
 #settings-view h3{font-size:15px;font-weight:600;color:#111;margin-bottom:4px}
 #messages{flex:1;padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
-.msg{max-width:82%;padding:10px 14px;border-radius:18px;font-size:15px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.msg{max-width:82%;padding:10px 14px;border-radius:18px;font-size:15px;line-height:1.6;word-break:break-word}
 .msg.user{align-self:flex-end;background:#378ADD;color:#fff;border-bottom-right-radius:4px}
 .msg.bot{align-self:flex-start;background:#f0f0f0;color:#111;border-bottom-left-radius:4px}
 .msg.loading{color:#999;font-style:italic}
-.choices{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;align-self:flex-start}
-.choice-btn{font-size:13px;padding:7px 14px;border-radius:20px;border:0.5px solid #ccc;background:#fff;color:#111;cursor:pointer}
-.choice-btn:active{background:#f0f0f0}
+.msg.bot .intro{margin-bottom:8px}
+.msg.bot .list-item{display:flex;gap:8px;padding:6px 0;border-bottom:0.5px solid #ddd}
+.msg.bot .list-item:last-child{border-bottom:none}
+.msg.bot .list-bullet{color:#378ADD;font-weight:600;flex-shrink:0}
+.msg.bot .list-text{flex:1}
+.msg.bot .list-label{font-size:12px;color:#888;margin-bottom:1px}
+.msg.bot .list-value{font-size:15px;font-weight:500;color:#111}
 #input-row{padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));border-top:0.5px solid #e0e0e0;display:flex;gap:8px;align-items:center;background:#fff}
 #main-input{flex:1;border:0.5px solid #ccc;border-radius:22px;padding:10px 16px;font-size:15px;background:#f8f8f8;color:#111;outline:none;-webkit-appearance:none}
 #main-input:focus{border-color:#378ADD;background:#fff}
@@ -38,13 +42,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;ba
 .kw-label{font-size:14px;font-weight:500;color:#111;flex:1}
 .del-btn{font-size:12px;padding:3px 10px;border-radius:8px;border:0.5px solid #ccc;background:transparent;color:#999;cursor:pointer}
 .kw-card textarea{width:100%;border:0.5px solid #ccc;border-radius:8px;padding:8px 10px;font-size:13px;background:#fff;color:#111;resize:vertical;min-height:65px;font-family:inherit}
-.kw-card select{font-size:12px;padding:4px 8px;border-radius:8px;border:0.5px solid #ccc;background:#fff;color:#555}
+.kw-card textarea:focus{outline:none;border-color:#378ADD}
 .save-btn{font-size:13px;padding:5px 14px;border-radius:8px;border:0.5px solid #ccc;background:#fff;color:#111;cursor:pointer;align-self:flex-end}
-.save-btn:active{background:#378ADD;color:#fff}
 #add-kw-area{border:1px dashed #ccc;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;margin-top:4px}
 #add-kw-area label{font-size:13px;color:#555}
 #add-kw-area input{border:0.5px solid #ccc;border-radius:8px;padding:7px 10px;font-size:14px;background:#fff;color:#111;width:100%}
-#add-kw-area select{font-size:13px;padding:5px 8px;border-radius:8px;border:0.5px solid #ccc;background:#fff;color:#555}
 #add-btn{padding:7px 16px;border-radius:8px;background:#378ADD;color:#fff;border:none;cursor:pointer;font-size:14px;align-self:flex-start}
 #api-section{background:#fff3cd;border:0.5px solid #ffc107;border-radius:12px;padding:12px;margin-bottom:12px}
 #api-section label{font-size:13px;color:#856404;display:block;margin-bottom:6px;font-weight:500}
@@ -77,36 +79,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;ba
     <div id="add-kw-area">
       <label>新しいキーワード</label>
       <input type="text" id="new-kw" placeholder="例：酒飲みたい" />
-      <select id="new-tone">
-        <option value="gentle">やさしく</option>
-        <option value="harsh">きつめ</option>
-        <option value="hype">テンション上げ</option>
-        <option value="push">背中を押す</option>
-      </select>
       <button id="add-btn" onclick="addKeyword()">追加</button>
     </div>
   </div>
 </div>
 <script>
 const DEFAULT_KW=[
-  {kw:'お金がたまった',tone:'hype',context:'30万円：アムス旅行\n25万円：デノンのCDJ\n10万円：カメラレンズ'},
-  {kw:'ODしたい',tone:'harsh',context:'臓器へのダメージがやばい\n次の日最悪な気分になる\n繰り返すたびに効かなくなる'},
-  {kw:'腹が減った',tone:'gentle',context:'冷蔵庫に卵とチーズある\n近所にローソンある\n昨日残したカレーある'},
-  {kw:'筋トレしたくない',tone:'push',context:'3ヶ月で5kg絞る目標がある\n10分だけやれば絶対やる気出る'}
+  {kw:'お金がたまった',context:'30万円：アムス旅行\n25万円：デノンのCDJ\n10万円：カメラレンズ'},
+  {kw:'ODしたい',context:'臓器へのダメージがやばい\n次の日最悪な気分になる\n繰り返すたびに効かなくなる'},
+  {kw:'腹が減った',context:'冷蔵庫に卵とチーズある\n近所にローソンある\n昨日残したカレーある'},
+  {kw:'筋トレしたくない',context:'3ヶ月で5kg絞る目標がある\n10分だけやれば絶対やる気出る'}
 ];
-const TONE_LABELS={gentle:'やさしく',harsh:'きつめ',hype:'テンション上げ',push:'背中を押す'};
-const TONE_MAP={'やさしく':'gentle','きつめ':'harsh','テンション上げ':'hype','背中を押す':'push'};
 
-let keywords=JSON.parse(localStorage.getItem('atashi_kw')||'null')||DEFAULT_KW;
+let keywords=JSON.parse(localStorage.getItem('atashi_kw3')||'null')||DEFAULT_KW;
 let apiKey=localStorage.getItem('atashi_api')||'';
 let isChat=true,isLoading=false,regMode=null;
 
-function save(){localStorage.setItem('atashi_kw',JSON.stringify(keywords));}
+function save(){localStorage.setItem('atashi_kw3',JSON.stringify(keywords));}
 function saveApiKey(){
   const v=document.getElementById('api-key-input').value.trim();
   if(!v)return;
-  apiKey=v;
-  localStorage.setItem('atashi_api',v);
+  apiKey=v;localStorage.setItem('atashi_api',v);
   document.getElementById('save-api-btn').textContent='保存済 ✓';
   setTimeout(()=>document.getElementById('save-api-btn').textContent='保存',1500);
 }
@@ -116,10 +109,7 @@ function toggleView(){
   document.getElementById('chat-view').style.display=isChat?'flex':'none';
   document.getElementById('settings-view').style.display=isChat?'none':'flex';
   document.getElementById('tab-btn').textContent=isChat?'⚙ 設定':'← 戻る';
-  if(!isChat){
-    renderSettings();
-    if(apiKey)document.getElementById('api-key-input').value=apiKey;
-  }
+  if(!isChat){renderSettings();if(apiKey)document.getElementById('api-key-input').value=apiKey;}
 }
 
 function renderSettings(){
@@ -127,7 +117,6 @@ function renderSettings(){
   keywords.forEach((k,i)=>{
     const div=document.createElement('div');div.className='kw-card';
     div.innerHTML=`<div class="kw-card-top"><span class="kw-label">「${k.kw}」</span>
-      <select onchange="keywords[${i}].tone=this.value">${Object.entries(TONE_LABELS).map(([v,l])=>`<option value="${v}"${k.tone===v?' selected':''}>${l}</option>`).join('')}</select>
       <button class="del-btn" onclick="deleteKw(${i})">削除</button></div>
       <textarea>${k.context||''}</textarea>
       <button class="save-btn" onclick="saveKw(${i},this)">保存</button>`;
@@ -137,19 +126,66 @@ function renderSettings(){
 function saveKw(i,btn){
   const card=btn.closest('.kw-card');
   keywords[i].context=card.querySelector('textarea').value;
-  keywords[i].tone=card.querySelector('select').value;
   save();btn.textContent='保存済 ✓';setTimeout(()=>btn.textContent='保存',1200);
 }
 function deleteKw(i){keywords.splice(i,1);save();renderSettings();}
 function addKeyword(){
   const kw=document.getElementById('new-kw').value.trim();
-  const tone=document.getElementById('new-tone').value;
   if(!kw)return;
-  keywords.push({kw,tone,context:''});save();
+  keywords.push({kw,context:''});save();
   document.getElementById('new-kw').value='';renderSettings();
 }
 
 const msgsEl=document.getElementById('messages');
+
+// テキストをパースしてリスト形式で表示
+function renderBotMsg(text){
+  const div=document.createElement('div');
+  div.className='msg bot';
+
+  // 行ごとに分割してリスト判定
+  const lines=text.split('\n').filter(l=>l.trim());
+  const listLines=lines.filter(l=>/[：:・\-\d]/.test(l));
+  
+  if(listLines.length>=2 && listLines.length===lines.length){
+    // 全行がリストっぽい→カード形式
+    lines.forEach(line=>{
+      const item=document.createElement('div');
+      item.className='list-item';
+      // 「金額：内容」パターン
+      const m=line.match(/^(.+?)[：:]\s*(.+)$/);
+      if(m){
+        item.innerHTML=`<span class="list-bullet">▸</span><span class="list-text"><span class="list-label">${m[1].trim()}</span><span class="list-value">${m[2].trim()}</span></span>`;
+      } else {
+        item.innerHTML=`<span class="list-bullet">▸</span><span class="list-text"><span class="list-value">${line.replace(/^[・\-\s]+/,'')}</span></span>`;
+      }
+      div.appendChild(item);
+    });
+  } else if(lines.length>1){
+    // 混在→最初の行はイントロ、残りはリスト
+    const intro=document.createElement('div');
+    intro.className='intro';
+    intro.textContent=lines[0];
+    div.appendChild(intro);
+    lines.slice(1).forEach(line=>{
+      const item=document.createElement('div');
+      item.className='list-item';
+      const m=line.match(/^(.+?)[：:]\s*(.+)$/);
+      if(m){
+        item.innerHTML=`<span class="list-bullet">▸</span><span class="list-text"><span class="list-label">${m[1].trim()}</span><span class="list-value">${m[2].trim()}</span></span>`;
+      } else {
+        item.innerHTML=`<span class="list-bullet">▸</span><span class="list-text"><span class="list-value">${line.replace(/^[・\-\*\s]+/,'')}</span></span>`;
+      }
+      div.appendChild(item);
+    });
+  } else {
+    div.textContent=text;
+  }
+  msgsEl.appendChild(div);
+  msgsEl.scrollTop=msgsEl.scrollHeight;
+  return div;
+}
+
 function addMsg(text,who,loading=false){
   const div=document.createElement('div');
   div.className=`msg ${who}${loading?' loading':''}`;
@@ -157,54 +193,53 @@ function addMsg(text,who,loading=false){
   msgsEl.appendChild(div);msgsEl.scrollTop=msgsEl.scrollHeight;
   return div;
 }
-function addChoices(options,onSelect){
-  const div=document.createElement('div');div.className='choices';
-  options.forEach(opt=>{
-    const btn=document.createElement('button');btn.className='choice-btn';btn.textContent=opt;
-    btn.onclick=()=>{div.remove();onSelect(opt);};
-    div.appendChild(btn);
-  });
-  msgsEl.appendChild(div);msgsEl.scrollTop=msgsEl.scrollHeight;
-}
 
-function toneInstruction(tone,kw){
-  if(tone==='harsh')return `「${kw}」と言ってきた。一人称は「あたし」。まず短くきつめの一言（でも突き放さない）を言ってから、以下の情報を使って踏みとどまらせて。`;
-  if(tone==='hype') return `「${kw}」と言ってきた。一人称は「あたし」。一緒にテンション上げながら、以下の情報も使って楽しく返して。`;
-  if(tone==='push') return `「${kw}」と言ってきた。一人称は「あたし」。友達として背中を押す感じで、以下の情報も参考にして短く返して。`;
-  return                    `「${kw}」と言ってきた。一人称は「あたし」。友達として共感しながら、以下の情報も参考にして返して。`;
-}
+async function callAI(kw,context,userMsg){
+  if(!apiKey) return '設定画面でAPIキーを入れてくれ';
+  const ctx=context?`\n\n【登録情報】\n${context}`:'';
+  const prompt=`ユーザーが「${userMsg}」と言ってきた。${ctx}
 
-async function callAI(matched,userMsg){
-  if(!apiKey){
-    return '設定画面でAPIキーを入れてくれ';
-  }
-  const inst=toneInstruction(matched.tone,matched.kw);
-  const ctx=matched.context?`\n\n【登録されている情報】\n${matched.context}`:'';
-  const prompt=`${inst}${ctx}\n\nユーザーのメッセージ：「${userMsg}」\n\n返答は150字以内、タメ口で。`;
+以下のどれかのスタイルでランダムに返して（毎回違うスタイルにして）：
+- 一言きつめ＋でも突き放さない温かさ
+- テンション上げ系
+- 静かに背中を押す系
+- 共感してから行動を促す系
+
+登録情報がある場合はそれをリスト形式で見やすく含めて。
+一人称は「あたし」。タメ口。200字以内。絵文字なし。説教くさくしない。`;
+
   const res=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
     body:JSON.stringify({
-      model:'claude-haiku-4-5-20251001',max_tokens:300,
-      system:'あなたはユーザーのフランクな友達。一人称は必ず「あたし」。タメ口、短め、絵文字なし、説教くさくない。でも相手のことを本当に大切に思ってる。「私」「俺」「僕」は絶対に使わない。',
+      model:'claude-haiku-4-5-20251001',max_tokens:400,
+      system:'あなたはユーザーのフランクな友達。一人称は必ず「あたし」。タメ口、絵文字なし、説教くさくない。相手を本当に大切に思ってる。「私」「俺」「僕」は絶対使わない。',
       messages:[{role:'user',content:prompt}]
     })
   });
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
   const data=await res.json();
-  return data.content?.[0]?.text||'うまく返せんかった、もう一回送ってみて';
+  return data.content?.[0]?.text||null;
 }
 
 async function fireAI(matched,trigger){
   isLoading=true;
   document.getElementById('send-btn').disabled=true;
   const loadDiv=addMsg('...','bot loading');
-  try{
-    const reply=await callAI(matched,trigger);
-    loadDiv.textContent=reply;loadDiv.classList.remove('loading');
-  }catch(e){
-    loadDiv.textContent='通信エラー、もう一回試して';loadDiv.classList.remove('loading');
+  let reply=null;
+  for(let i=0;i<3;i++){
+    try{
+      reply=await callAI(matched.kw,matched.context,trigger);
+      if(reply) break;
+    }catch(e){
+      if(i===2) reply='ごめん、今うまく返せんかった。もう一回打ってみて';
+      else await new Promise(r=>setTimeout(r,1000));
+    }
   }
-  isLoading=false;document.getElementById('send-btn').disabled=false;
+  loadDiv.remove();
+  renderBotMsg(reply||'ごめん、今うまく返せんかった。もう一回打ってみて');
+  isLoading=false;
+  document.getElementById('send-btn').disabled=false;
 }
 
 async function handleSend(){
@@ -213,22 +248,14 @@ async function handleSend(){
   const val=input.value.trim();if(!val)return;
   input.value='';
 
-  if(regMode){
-    if(regMode.step==='context'){
-      addMsg(val,'user');
-      regMode.context=val;
-      regMode.step='tone';
-      addMsg('あたしどんな感じで返せばいい？','bot');
-      addChoices(['やさしく','きつめ','テンション上げ','背中を押す'],async(choice)=>{
-        regMode.tone=TONE_MAP[choice];
-        const newKw={kw:regMode.kw,tone:regMode.tone,context:regMode.context};
-        const idx=keywords.findIndex(k=>k.kw===regMode.kw);
-        if(idx>=0)keywords[idx]=newKw; else keywords.push(newKw);
-        save();regMode=null;
-        addMsg('覚えた。じゃあ返すね','bot');
-        await fireAI(newKw,newKw.kw);
-      });
-    }
+  if(regMode&&regMode.step==='context'){
+    addMsg(val,'user');
+    const newKw={kw:regMode.kw,context:val};
+    const idx=keywords.findIndex(k=>k.kw===regMode.kw);
+    if(idx>=0) keywords[idx]=newKw; else keywords.push(newKw);
+    save();regMode=null;
+    addMsg('覚えた','bot');
+    await fireAI(newKw,newKw.kw);
     return;
   }
 
@@ -236,13 +263,13 @@ async function handleSend(){
   const matched=keywords.find(k=>val.includes(k.kw));
 
   if(!matched){
-    addMsg(`「${val}」ね。あたしが参考にしたい情報、書いといてくれる？リストでも理由でも何でも。`,'bot');
+    addMsg(`「${val}」ね。あたしが参考にしたい情報書いといてくれる？リストでも理由でも何でも。`,'bot');
     regMode={step:'context',kw:val};
     return;
   }
   if(!matched.context){
-    addMsg(`「${matched.kw}」の情報がまだないや。あたしが参考にしたいこと書いてくれ`,'bot');
-    regMode={step:'context',kw:matched.kw,tone:matched.tone};
+    addMsg(`「${matched.kw}」の情報まだないや。あたしが参考にしたいこと書いてくれ。`,'bot');
+    regMode={step:'context',kw:matched.kw};
     return;
   }
   await fireAI(matched,val);
@@ -251,6 +278,11 @@ async function handleSend(){
 document.getElementById('main-input').addEventListener('keydown',e=>{
   if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSend();}
 });
+
+// SW登録
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
 
 addMsg('よ。何かあったら打ってみ。','bot');
 </script>
